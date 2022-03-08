@@ -59,3 +59,46 @@ host directory에 node_module가 없기에 컨테이너에 맵핑을 하지 않�
 뒷 부분은 pwd경로에 있는 디렉토리 혹은 파일을 /usr/src/app 경로에서 참조한다.
 
 이미지 빌드 과정이 없어지는 장점이 있긴 하지만, 껐다 켜야 하는 것은 변하지 않는다는 점은 기억
+
+# Docker Compose
+
+다중 컨테이너 도커 애플리케이션을 실행하기 위한 도구, 쿠버네이틱스의 진화 전단계
+
+# Redis
+
+REmote Dictionary Server 메모리 기반 키, 값 구조 데이터 관리 시스템. 모든 데이터를 메모리에 저장하고, 빠르게 조회할 수 있는 nosql이다.
+메모리에 저장하기에 mysql보다 빠르고, 메모리에 저장하더라도 영속적 보관이 가능. 서버 재부팅시 데이터 유지
+일반 경우
+const client=redis.createClient({
+host:"https://redis-server.com",
+port:6379
+})
+docker 환경의 경우 docker-compose.yml파일에 명시한 컨테이너 이름을 호스트에 넣어야 됨.
+redisname",
+port:6379
+
+# 5장 docker compose
+
+nodejs app + redis client / redis server
+멀티 컨테이너 상황에서 네트워크 연결을 위한 것임
+
+yaml 파일. yml 파일. YAML ain't markup language. xml이나 json포맷보다 조금 가독성이 높다는 특징
+yml파일 구성 요소
+
+```
+version: "3" //버전
+services: //컨테이너 정리
+  redis-server: //컨테이너 이름
+    image: "redis" //컨테이너 이미지
+  node-app: //컨테이너 이름
+    build: . //현 디렉토리에 있는 docker file 사용
+    ports: //포트 매핑
+      - "5000:8080"
+```
+
+docker-compose up vs docker-compose up --build
+이미지가 없을 때 빌드하고 시작, 이미지가 있든 없든 빌드하고 시작 -d detach
+
+# 6강 react 를 연동
+
+개발 =>github, branch, =>travis CI =>test =>호스팅
