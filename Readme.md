@@ -148,3 +148,9 @@ COPY --from=builder /usr/src/app/build /usr/share/nginx/html //builder에서 오
 //빌드 된 파일을 가져와서 어느 곳에다가 복사를 할지를 말함. 저 경로는 nginx가 제공할 수 있는 경로임.
 //저렇게 안 한다면 nginx로 설정을 따로 해줘야 됨
 ```
+
+# git에 push, travis ci 사용
+
+travis ci 는 github repository 에서 자동 test, build, publish를 해줌.
+local git=>github =>travis ci=>aws
+순으로 이동이 됨.
