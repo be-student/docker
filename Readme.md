@@ -102,3 +102,49 @@ docker-compose up vs docker-compose up --build
 # 6강 react 를 연동
 
 개발 =>github, branch, =>travis CI =>test =>호스팅
+docker file 작성시 dev인 경우 dockerfile.dev, prod인 경우dockerfile 을
+이미지 빌드시 docker build -f Dockerfile.dev . 라는 거를 줘야 함. 그래야
+-f 부분은 저 파일을 찾아라 라고 하는 것
+
+docker run -p 3000:3000 -v /usr/src/app/node_modules -v %cd%:usr/src/app
+node module은 없으니 맵핑하지 말고, 나머지는 현재 디렉토리에서 참고해라
+
+docker run -it -p 3000:3000 -v /usr/src/app/node_modules -v %cd%:/usr/src/app presentsong/docker-react-app 이게 정말 너무 치기 귀찮음
+docker.yml로 처리해버림
+
+```
+version: "3"
+services:
+  react://컨테이너 이름
+    build: //현 디렉토리에 있는 도커파일 사용
+      context: .  //도커이미지를 구성하기 위한 파일과 폴더들이 있는 위치
+      dockerfile: Dockerfile.dev //도커 파일 이름 명시
+    ports:
+      - "3000:3000"
+    volumes:
+      - /usr/src/app/nodemodules //nodemodule는 참조하지 않겠다.
+      - /./:/usr/src/app //나머지는 참조하겠다
+    stdin_open: true
+    environment: //핫 리로딩
+      - CHOKIDAR_USEPOLLING=true
+```
+
+docker run -it 이름 npm run test
+로 처리할 수 있음
+
+운영 단계 : builder stage(빌드 파일 생성까지) run stage : 실제로 실행하는 과정
+
+```
+FROM node:alpine as builder //빌드 단계
+WORKDIR '/usr/src/app' // /usr/src/app/build로 들어감. 생성된 파일들은 다
+COPY package.json .
+RUN npm install
+COPY ./ ./
+RUN npm run build
+
+FROM nginx //run stage
+EXPOSE 80
+COPY --from=builder /usr/src/app/build /usr/share/nginx/html //builder에서 오는 파일을
+//빌드 된 파일을 가져와서 어느 곳에다가 복사를 할지를 말함. 저 경로는 nginx가 제공할 수 있는 경로임.
+//저렇게 안 한다면 nginx로 설정을 따로 해줘야 됨
+```
