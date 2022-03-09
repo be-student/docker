@@ -154,3 +154,75 @@ COPY --from=builder /usr/src/app/build /usr/share/nginx/html //builder에서 오
 travis ci 는 github repository 에서 자동 test, build, publish를 해줌.
 local git=>github =>travis ci=>aws
 순으로 이동이 됨.
+테스트 수행 준비(도커 환경 실행=>traivs ci도 도커로, dockerfile.dev로 이미지 생성)=> 수행(test 수행 방법 설정 .yml파일) =>aws로 배포(배포 방식도 설정)
+
+sudo =>관리자 권한
+language => 언어(플랫폼) 선택
+services => 도커환경 구성
+before install => 스크립트 실행할 수 있는 환경
+script => 실행할 스크립트 설정
+after_success => 테스트 성공 후 할 일
+
+# ec2, elastic beanstalk
+
+ec2는 컴퓨터 1대 임대와 유사함, elastic beanstalk는 ec2, db, security group, auto-scaling group, load balancer 가 함께 있는 복합체. apahe, nginx같은 서버부터 java, net, php, nodejs, python, go, docker같은 방식으로 개발된 웹 응용 프로그램을 배포할 때 확장하기 쉬운 서비스
+로드 밸런서 : 알아서 요청 트래픽 서버별로 분배.
+트래픽이 적을 때 : 브라우저 =>aws elastic beanstalk(로드밸런서 => ec2인스턴스(도커 컨테이너(어플리케이션)))
+deploy 부분
+provider : elasticbeanstalk, firebase, s3등 여러가지 곳에 다 제공이 가능함
+region : aws 서비스가 위치한 물리적 장소
+app : 이름
+env : 이름을 써주면 됨
+bucker_name : s3를 쓰는 경우 버킷 이름
+bucker_name : 어플리케이션 이름과 동일
+on
+branch :어떤 branch에 push할 때 aws에 배포를 할 지
+travis ci 에서 aws에서 실제로 소통할 수 있도록 인증 세팅.
+
+secret key를 받는 방법
+IAM(identity and access management)
+IAM으로 인증, 로그인 권한 부여
+처음 로그인 시 root사용자로 모든 리소스를 가능하지만, 루트 사용자에서 IAM에 권한을 부여하는 방법
+iam 에서 사용자 추가
+비밀 access key는 travis.yml에 있는 것에 바로 올리는 것이 아닌, 숨겨야 함. .env 사용 느낌
+travis ci 사이트에서 dashboard, repository, more options, setting, environment variables.
+access_key는 그냥 key, secret key는 secret key 에 있음.
+
+# node 서버
+
+nginx 프록시를 이용한 설계 vs nginx 정적 파일 제공 설계
+![image](https://user-images.githubusercontent.com/80899085/157557417-65274b7e-1401-49c0-a437-fb4755e32963.png)
+client => nginx(proxy) =>프론트(nginx 설정), 백엔드
+
+default.conf
+nginx 설정이 여기에 있음
+/가 있으면 front로, api가 있으면 백으로 감.
+
+# react 서버
+
+```
+server {
+    listen 3000;
+
+    location / {
+      //경로에다가 build파일을 넣어둔다면
+        root /usr/share/nginx/html; //html이 위치할 설정.
+
+        index index.html index.htm; //index.html 을 index 페이지로 하겠다.
+
+        try_files $uri  $uri/ /index.html; //라우팅할 때 필요함.
+        //react는 spa임. 따라서 url/home에 접근한다고 했을 때, /home에 파일이 없다면 /home으로 index.html에서 라우팅 시켜준다.
+
+    }
+}
+```
+
+```
+COPY ./nginx/default.conf /etc/nginx/conf.d/default.conf 이 부분은 우리가 작성한 default.conf를 nginx 설정으로 덮어 씌워주는 것
+COPY --from=builder /app/build  /usr/share/nginx/html //빌드 파일을 제공할 수 있도록 옮겨 적어주는 것 builder stage에서 옴.
+```
+
+# db 구성
+
+개발 : 도커 환경 이용
+운영 환경 : AWS RDS 서비스 이용

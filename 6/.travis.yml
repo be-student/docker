@@ -7,18 +7,18 @@ services:
 
 before_install:
   - echo "start creating an image with dockerfile"
-  - docker build -t smileajw1004/docker-react-app -f Dockerfile.dev .
+  - docker build -t presentsong/docker-react-app -f Dockerfile.dev .
 
-script: 
-  - docker run -e CI=true smileajw1004/docker-react-app npm run test -- --coverage
+# script:
+#   - docker run -e CI=true presentsong/docker-react-app npm run test -- --coverage
 
 deploy:
   edge: true
   provider: elasticbeanstalk
-  region: ap-northeast-2
+  region: us-east-1
   app: docker-react-app
   env: DockerReactApp-env
-  bucket_name: elasticbeanstalk-ap-northeast-2-972153559337
+  bucket_name: elasticbeanstalk-us-east-1-355900306310
   bucket_path: docker-react-app
   on:
     branch: master
