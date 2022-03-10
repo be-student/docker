@@ -226,3 +226,75 @@ COPY --from=builder /app/build  /usr/share/nginx/html //빌드 파일을 제공�
 
 개발 : 도커 환경 이용
 운영 환경 : AWS RDS 서비스 이용
+
+개발
+elastic beanstalk
+client=>nginx=>프론트(nginx=>js,html,css, 3000번),백(server 5000번)=>mysql
+
+운영
+elastic beanstalk
+client=>nginx=>프론트(nginx=>js,html,css, 3000번),백(server 5000번)
+RDS로 mysql 부분 분리
+
+db사용을 위해서는 db 설치파일을 이용해 설치, 노드 앱에 연결해야 하지만 그냥 노드 앱에 연결만 시켜줬습니다
+이 부분을 도커 이미지를 이용해 설치를 함.
+
+my.cnf 파일에 한글 utf8인코딩 설정을 해줘야 됨.
+
+docker file에 add ./my.cnf 를 해야 함.
+.dev는 굳이 달라질 이유가 없으면 그냥 똑같이 함.
+
+nginx를 위한 도커 파일. proxy nginx를 위한 것임.
+api 라면 nodejs로, 그냥은 정적 파일로.
+
+front 안에 nginx가 있고, 그냥 전체 nginx가 있음.
+
+```
+upstream frontend {
+    server frontend:3000;
+}
+
+upstream backend {
+    server backend:5000;
+}
+
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://frontend;
+    }
+
+    location /api {
+        proxy_pass http://backend;
+    }
+
+    location /sockjs-node {
+        proxy_pass http://frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "Upgrade";
+    }
+
+}
+```
+
+프론트가 3000에 돌고 있다는 거를 그냥 적어둘 뿐임 그 이름은 dockere compose 파일에 있음.
+server{
+listen 80; 이 부분이 진짜 제일 바깥 서버 포트.
+}
+docker compose 파일에 적혀있는 것임. 전부 다 그 이름 그대로.
+docker환경이 아니라면 전부 다 ip를 적어야 함. 하지만 도커기에 다 됨
+밑부분은 개발 환경 react 에러임.
+
+nginx를 위한 docker 파일 제작이 필요함.
+nginx에 copy로 덮어 씌우는 것
+
+docker 를 각각 만든다고 해도, docker-compose로 합쳐야 함.
+그렇게 하지 않으면 어차피 통신이 안 됨.
+
+docker-compose
+volume 으로 node_modules 부분을 필요 없이 해버림, frontend 부분을 알아서 참조하도록 조금 세팅을 해줌. stdin_open:true react앱 종료시 생기는 버그를 잡아 줌.
+
+nginx : restart부분 "no", always, on-failure unless-stopped : 가 있음.
+unless-stopped : 개발자가 멈추고자 할 때 제외하면 계속 재시작
