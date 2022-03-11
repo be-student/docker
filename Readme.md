@@ -298,3 +298,5 @@ volume 으로 node_modules 부분을 필요 없이 해버림, frontend 부분을
 
 nginx : restart부분 "no", always, on-failure unless-stopped : 가 있음.
 unless-stopped : 개발자가 멈추고자 할 때 제외하면 계속 재시작
+
+volume이 호스트 파일 시스템에 mysql db를 저장하고, 이를 참조하기에 이미지, 컨테이너 삭제시에도 데이터가 유지됨.
